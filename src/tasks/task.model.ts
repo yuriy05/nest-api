@@ -2,7 +2,7 @@ export interface Task {
   id: string;
   title: string;
   description: string;
-  status: typeof TaskStatus;
+  status: (typeof TaskStatus)[keyof typeof TaskStatus];
 }
 
 export const TaskStatus = {
