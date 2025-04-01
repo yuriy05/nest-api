@@ -1,32 +1,62 @@
 import { Injectable } from '@nestjs/common';
-import { Task } from './task.model';
+import { ITask, TaskStatus, TaskStatusType } from './task.model';
 import { CreateTaskDto } from './create-task.dto';
 import { randomUUID } from 'crypto';
+import { UpdateTaskDto } from './update-task.dto';
+import { WrongTaskStatusException } from './exceptions/wrong-task-status.exception';
+import { Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Task } from './task.entity';
 
 @Injectable()
 export class TasksService {
-  private tasks: Task[] = [];
+  constructor(
+    @InjectRepository(Task)
+    private readonly taskRepository: Repository<Task>,
+  ) {}
 
-  findAll(): Task[] {
-    return this.tasks;
+  public async findAll(): Promise<Task[]> {
+    return await this.taskRepository.find();
   }
 
-  findOne(id: string): Task | undefined {
-    return this.tasks.find((task) => task.id === id);
+  public async findOne(id: string): Promise<Task | null> {
+    return await this.taskRepository.findOneBy({ id });
   }
 
-  create(createTaskDto: CreateTaskDto): Task {
-    const task: Task = {
-      id: randomUUID(),
-      ...createTaskDto,
-    };
-
-    this.tasks.push(task);
-
-    return task;
+  public async createTask(createTaskDto: CreateTaskDto): Promise<Task> {
+    return await this.taskRepository.save(createTaskDto);
   }
 
-  deleteTask(id: string): void {
-    this.tasks = this.tasks.filter((task) => task.id !== id);
+  public async deleteTask(id: string): Promise<void> {
+    await this.taskRepository.delete({ id });
+  }
+
+  public async updateTask(
+    task: Task,
+    updateTaskDto: UpdateTaskDto,
+  ): Promise<Task> {
+    if (
+      updateTaskDto.status &&
+      !this.isValidStatusTransition(task.status, updateTaskDto.status)
+    ) {
+      throw new WrongTaskStatusException();
+    }
+
+    Object.assign(task, updateTaskDto);
+
+    return await this.taskRepository.save(task);
+  }
+
+  private isValidStatusTransition(
+    currentStatus: TaskStatusType,
+    newStatus: TaskStatusType,
+  ): boolean {
+    const statusOrder = [
+      TaskStatus.OPEN,
+      TaskStatus.IN_PROGRESS,
+      TaskStatus.DONE,
+    ];
+
+    return statusOrder.indexOf(currentStatus) <= statusOrder.indexOf(newStatus);
   }
 }

@@ -1,8 +1,8 @@
-export interface Task {
+export interface ITask {
   id: string;
   title: string;
   description: string;
-  status: (typeof TaskStatus)[keyof typeof TaskStatus];
+  status: TaskStatusType;
 }
 
 export const TaskStatus = {
@@ -10,3 +10,5 @@ export const TaskStatus = {
   IN_PROGRESS: 'IN_PROGRESS',
   DONE: 'DONE',
 } as const;
+
+export type TaskStatusType = (typeof TaskStatus)[keyof typeof TaskStatus];
