@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { ITask, TaskStatus, TaskStatusType } from './task.model';
+import { TaskStatus, TaskStatusType } from './task.model';
 import { CreateTaskDto } from './create-task.dto';
-import { randomUUID } from 'crypto';
 import { UpdateTaskDto } from './update-task.dto';
 import { WrongTaskStatusException } from './exceptions/wrong-task-status.exception';
 import { Repository } from 'typeorm';
