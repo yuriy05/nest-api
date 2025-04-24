@@ -14,6 +14,8 @@ import { TypedConfigService } from './config/typed-config.service';
 import { Task } from './tasks/task.entity';
 import { User } from './users/user.entity';
 import { TaskLabel } from './tasks/task-label.entity';
+import { authConfig } from './config/auth.config';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -26,13 +28,14 @@ import { TaskLabel } from './tasks/task-label.entity';
       }),
     }),
     ConfigModule.forRoot({
-      load: [appConfig, typeOrmConfig],
+      load: [appConfig, typeOrmConfig, authConfig],
       validationSchema: appConfigSchema,
       validationOptions: {
         abortEarly: true,
       },
     }),
     TasksModule,
+    UsersModule,
   ],
   controllers: [AppController],
   providers: [

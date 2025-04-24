@@ -26,6 +26,7 @@ export class TaskLabel {
   // On delete task, associated labels will also remove
   @ManyToOne(() => Task, (task) => task.labels, {
     onDelete: 'CASCADE',
+    orphanedRowAction: 'delete',
   })
   task: Task;
 

@@ -11,6 +11,7 @@ import {
   Post,
   Put,
   BadRequestException,
+  Query,
 } from '@nestjs/common';
 import { TasksService } from './tasks.service';
 import { CreateTaskDto } from './create-task.dto';
@@ -19,14 +20,29 @@ import { UpdateTaskStatusDto } from './update-task-status.dto';
 import { UpdateTaskDto } from './update-task.dto';
 import { Task } from './task.entity';
 import { WrongTaskStatusException } from './exceptions/wrong-task-status.exception';
+import { CreateTaskLabelDto } from './create-task-label.dto';
+import { FindTaskParams } from './find-task.params';
+import { PaginationParams } from 'src/common/pagination.params';
+import { PaginationResponse } from 'src/common/pagination.response';
 
 @Controller('tasks')
 export class TasksController {
   constructor(private readonly tasksService: TasksService) {}
 
   @Get()
-  public async findAll(): Promise<Task[]> {
-    return await this.tasksService.findAll();
+  public async findAll(
+    @Query() filters: FindTaskParams,
+    @Query() pagination: PaginationParams,
+  ): Promise<PaginationResponse<Task>> {
+    const [items, total] = await this.tasksService.findAll(filters, pagination);
+
+    return {
+      data: items,
+      meta: {
+        total,
+        ...pagination,
+      },
+    };
   }
 
   @Get('/:id')
@@ -59,7 +75,7 @@ export class TasksController {
     await this.tasksService.deleteTask(task.id);
   }
 
-  @Put('/:id')
+  @Patch('/:id')
   public async updateTask(
     @Param() params: FindOneParams,
     @Body() updateTaskDto: UpdateTaskDto,
@@ -85,5 +101,30 @@ export class TasksController {
     }
 
     return task;
+  }
+
+  @Post(':id/labels')
+  async addLabels(
+    @Param() { id }: FindOneParams,
+    @Body() labels: CreateTaskLabelDto[],
+  ): Promise<Task> {
+    const task = await this.tasksService.findOne(id);
+
+    if (!task) {
+      throw new NotFoundException();
+    }
+
+    return await this.tasksService.addLabels(task, labels);
+  }
+
+  @Delete(':id/labels')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async removeLabels(
+    @Param() { id }: FindOneParams,
+    @Body() labelsName: string[],
+  ): Promise<void> {
+    const task = await this.findOneOrFail(id);
+
+    await this.tasksService.removeLabels(task, labelsName);
   }
 }

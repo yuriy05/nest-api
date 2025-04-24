@@ -4,6 +4,8 @@ import {
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 import { TaskStatus, TaskStatusType } from './task.model';
 import { User } from 'src/users/user.entity';
@@ -39,12 +41,17 @@ export class Task {
   })
   userId: string;
 
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
+
   @ManyToOne(() => User, (user) => user.tasks, { nullable: false })
   user: User;
 
   @OneToMany(() => TaskLabel, (label) => label.task, {
     cascade: true,
-    orphanedRowAction: 'delete',
   })
   labels: TaskLabel[];
 }
