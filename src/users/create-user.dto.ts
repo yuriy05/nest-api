@@ -1,4 +1,4 @@
-import { IsEmail, IsNotEmpty, MinLength } from 'class-validator';
+import { IsEmail, IsNotEmpty, MinLength, Matches } from 'class-validator';
 
 export class CreateUserDto {
   @IsEmail()
@@ -7,7 +7,8 @@ export class CreateUserDto {
   @IsNotEmpty()
   name: string;
 
-  @IsNotEmpty()
+  @IsNotEmpty({ message: "Can't be empty" })
   @MinLength(8)
+  @Matches(/[A-Z]/, { message: 'Password must contain at least 1 uppercase letter' })
   password: string;
 }
